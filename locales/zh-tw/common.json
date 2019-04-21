@@ -1,0 +1,20 @@
+{
+  "yearLimit": "年極",
+  "monthLimit": "月極",
+  "largeSegmentLimit": "大段極",
+  "mediumSegmentLimit": "中段極",
+  "smallSegmentLimit": "小段極",
+  "dayLimit": "日極",
+  "hourLimit": "時極",
+  "largeQuaterLimit": "大刻極",
+  "smallQuaterLimit": "小刻極",
+  "yearLimitUnit": "年",
+  "monthLimitUnit": "月",
+  "largeSegmentLimitUnit": "大段",
+  "mediumSegmentLimitUnit": "中段",
+  "smallSegmentLimitUnit": "小段",
+  "dayLimitUnit": "日",
+  "hourLimitUnit": "時",
+  "largeQuaterLimitUnit": "大刻",
+  "smallQuaterLimitUnit": "小刻"
+}

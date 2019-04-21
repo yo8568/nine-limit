@@ -1,0 +1,32 @@
+{
+  "name": "nine-limit",
+  "version": "1.0.0",
+  "description": "Lunar calendar conversion tool whose precision is up to minute unit.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yo8568/nine-limit.git"
+  },
+  "keywords": [
+    "lunar-calendar",
+    "nine-limit"
+  ],
+  "author": "Kenny Chang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yo8568/nine-limit/issues"
+  },
+  "homepage": "https://github.com/yo8568/nine-limit#readme",
+  "devDependencies": {
+    "jest": "^24.7.1"
+  },
+  "dependencies": {
+    "@babel/cli": "^7.4.3",
+    "date-chinese": "^1.0.6",
+    "lunar-calendar-zh": "^0.1.4",
+    "moment": "^2.24.0"
+  }
+}
