@@ -9,7 +9,7 @@ import LunarCalendar from 'lunar-calendar'
 import ZhCnCommon from '../locales/zh-cn/common.json'
 import ZhTwCommon from '../locales/zh-tw/common.json'
 import ZhCnEarthlyBranches from '../locales/zh-cn/earthly-branches.json'
-import ZhTWEarthlyBranches from '../locales/zh-tw/eearthly-branches.json'
+import ZhTWEarthlyBranches from '../locales/zh-tw/earthly-branches.json'
 import ZhCnHeavenlyStems from '../locales/zh-cn/heavenly-stems.json'
 import ZhTWHeavenlyStems from '../locales/zh-tw/heavenly-stems.json'
 
@@ -40,18 +40,10 @@ const minFirstYearOfSolarYear = 4
 const locales = ['zh-TW', 'zh-CN']
 
 class NineLimit {
-  constructor (date) {
+  constructor (year, month, day, hour, minute) {
     this.locale = 'zh-TW'
-    this.solarDateTime = moment().utcOffset(8).toDate()
-    this.lunarDate = new CalendarChinese().fromDate(this.solarDateTime).get()
-    
-    this.hour = this.solarDateTime.getHours()
-    this.minute = this.solarDateTime.getMinutes()
-    this.second = this.solarDateTime.getSeconds()
-
     this.initialize()
-    this.setSolarDateTime(date)
-
+    this.setSolarDateTime(year, month, day, hour, minute)
   }
 
   initialize() {
@@ -99,7 +91,7 @@ class NineLimit {
       },
       smallQuaterLimit: {
         label: common['smallQuaterLimit'],
-        value: '陰',
+        value: '陽',
         unit: common['smallQuaterLimit']
       }
     }
@@ -111,42 +103,48 @@ class NineLimit {
       : jsonsOfLocale['zh-TW']
   } 
 
-  setSolarDateTime (date) {
-    if (date) {
-      this.solarDateTime = moment(date).utcOffset(8).toDate()
+  setSolarDateTime (year, month, day, hour, minute) {
+    if (year && month && day) {
+      if (typeof year !== Number) return new Error('Year is not number.')
+      if (typeof month !== Number) return new Error('Month is not number.')
+      if (typeof day !== Number) return new Error('Day is not number.')
+      if (typeof hour !== Number) return new Error('Hour is not number.')
+      if (typeof minute !== Number) return new Error('Minute is not number.')
+      this.solarDateTime = moment()
+        .set('year', year)
+        .set('month', month)
+        .set('day', day)
+        .set('hour', hour)
+        .set('minute', minute)
+    } else if (!year && !month & !day) {
+      this.solarDateTime = moment().utcOffset(8)
     } else {
-      this.solarDateTime = moment().utcOffset(8).toDate()
+      return new Error('Input value are not valid.')
     }
+
+    this.lunarDate = LunarCalendar.solarToLunar(
+      this.getSolarYear(), this.getSolarMonth(), this.getSolarDay()
+    )
   }
 
-  setLunarDateFromSolar() {
-    const [cycle, year, month, leap, day] = new CalendarChinese().fromDate(this.solarDateTime).get()
-    this._setYear(year)
-    this._setYear(month)
+  getSolarYear() {
+    return this.solarDateTime.year()
   }
 
-  _setYear (year) {
-    this._year = year
+  getSolarMonth() {
+    return this.solarDateTime.month()
   }
 
-  year () {
-    return this.getEHByOrder(this._year)
+  getSolarDay() {
+    return this.solarDateTime.day()
   }
 
-  getEHByOrder(order) {
-    const { earthlyBranches, heavenlyStems } = jsonsOfLocale[this.locale]
-    const ebCounts = 12
-    const hsCounts = 10
-    
-    return heavenlyStems[order % hsCounts] + earthlyBranches[order % ebCounts]
+  getSolarHour() {
+    return this.solarDateTime.hour()
   }
 
-  _setMonth (month) {
-    this._month = month
-  }
-
-  month () {
-    return this.getEHByOrder(this._month)
+  getSolarMinute() {
+    return this.solarDateTime.minute()
   }
 
   _compileYear () {}
