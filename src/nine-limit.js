@@ -12,18 +12,22 @@ import ZhCnEarthlyBranches from '../locales/zh-cn/earthly-branches.json'
 import ZhTWEarthlyBranches from '../locales/zh-tw/earthly-branches.json'
 import ZhCnHeavenlyStems from '../locales/zh-cn/heavenly-stems.json'
 import ZhTWHeavenlyStems from '../locales/zh-tw/heavenly-stems.json'
+import ZhCnFiveElements from '../locales/zh-cn/five-elements.json'
+import ZhTWFiveElements from '../locales/zh-tw/five-elements.json'
 
 
 const jsonsOfLocale = {
   'zh-CN': {
     'common': ZhCnCommon,
     'earthlyBranches': ZhCnEarthlyBranches,
-    'heavenlyStems': ZhCnHeavenlyStems
+    'heavenlyStems': ZhCnHeavenlyStems,
+    'fiveElements': ZhCnFiveElements
   },
   'zh-TW': {
     'common': ZhTwCommon,
     'earthlyBranches': ZhTWEarthlyBranches,
-    'heavenlyStems': ZhTWHeavenlyStems
+    'heavenlyStems': ZhTWHeavenlyStems,
+    'fiveElements': ZhTWFiveElements
   }
 }
 
@@ -42,6 +46,8 @@ const locales = ['zh-TW', 'zh-CN']
 class NineLimit {
   constructor (year, month, day, hour, minute) {
     this.locale = 'zh-TW'
+    this.solarDateTime = moment().utcOffset(8)
+    this.isLargeSegmentIncludesLastSegment = false
     this.initialize()
     this.setSolarDateTime(year, month, day, hour, minute)
   }
@@ -105,26 +111,37 @@ class NineLimit {
 
   setSolarDateTime (year, month, day, hour, minute) {
     if (year && month && day) {
-      if (typeof year !== Number) return new Error('Year is not number.')
-      if (typeof month !== Number) return new Error('Month is not number.')
-      if (typeof day !== Number) return new Error('Day is not number.')
-      if (typeof hour !== Number) return new Error('Hour is not number.')
-      if (typeof minute !== Number) return new Error('Minute is not number.')
+      if (typeof year !== 'number') throw 'Year is not number.'
+      if (typeof month !== 'number') throw 'Month is not number.'
+      if (typeof day !== 'number') throw 'Day is not number.'
+      if (typeof hour !== 'number') throw 'Hour is not number.'
+      if (typeof minute !== 'number') throw 'Minute is not number.'
+
       this.solarDateTime = moment()
-        .set('year', year)
-        .set('month', month)
-        .set('day', day)
-        .set('hour', hour)
-        .set('minute', minute)
+        .year(year)
+        .month(month - 1)
+        .date(day)
+        .hour(hour)
+        .minute(minute)
+
+      this.lunarDate = LunarCalendar.solarToLunar(
+        this.getSolarYear(), this.getSolarMonth(), this.getSolarDay()
+      )
+      this.isLargeSegmentIncludesLastSegment = this.lunarDate.monthDays >= 28
     } else if (!year && !month & !day) {
       this.solarDateTime = moment().utcOffset(8)
+      this.lunarDate = LunarCalendar.solarToLunar(
+        this.getSolarYear(), this.getSolarMonth(), this.getSolarDay()
+      )
+      this.isLargeSegmentIncludesLastSegment = this.lunarDate.monthDays >= 28
     } else {
-      return new Error('Input value are not valid.')
+      throw 'Input value are not valid.'
     }
 
     this.lunarDate = LunarCalendar.solarToLunar(
       this.getSolarYear(), this.getSolarMonth(), this.getSolarDay()
     )
+    return this
   }
 
   getSolarYear() {
@@ -132,11 +149,11 @@ class NineLimit {
   }
 
   getSolarMonth() {
-    return this.solarDateTime.month()
+    return this.solarDateTime.month() + 1
   }
 
   getSolarDay() {
-    return this.solarDateTime.day()
+    return this.solarDateTime.date()
   }
 
   getSolarHour() {
@@ -147,30 +164,81 @@ class NineLimit {
     return this.solarDateTime.minute()
   }
 
-  _compileYear () {}
-  _compileMonth () {}
-  _compileLargeSegmentLimit () {}
-  _compileMediumSegmentLimit () {}
-  _compileSmallSegmentLimit () {}
-  _compileDay () {}
-  _compileHour () {}
+  _compileYearLimit () {
+    this.result.yearLimit.value = this.lunarDate.GanZhiYear
+  }
+
+  _compileMonthLimit () {
+    this.result.monthLimit.value = this.lunarDate.GanZhiMonth
+  }
+
+  /**
+   * 2.5天為一組，以寅為開頭取農曆月算出大段極。
+   * 算出落在某個大段，然後以餘數為基礎，從該大段的頭開始換算成小時，再以5小時為一組
+   * 以寅為開頭，算出中段極。
+   * 最後小段極為五小時的第幾位以木火土金水為排序取值。
+   */
+  _compileSegmentLimit () {
+    const dateOrder = this.lunarDate.lunarDay
+    const hour = this.getSolarHour()
+
+    // 若超過整點再加1
+    const hourOrder = (dateOrder - 1) + (hour > 12 && this.getSolarMinute > 0 ? 0.5 : 0 )
+    const qOfLargeSegment = Math.ceil(hourOrder / 2.5)
+    const rOfLargeSegment = hourOrder % 2.5
+    const { earthlyBranches, fiveElements } = this.getTranslation()
+    this.result.largeSegmentLimit.value = earthlyBranches[`e${qOfLargeSegment}`]
+    
+    const qOfMediumSegment = Math.ceil((rOfLargeSegment * 24 + hour + (this.getSolarMinute > 0 ? 1 : 0)) / 5)
+    const rOfMediumSegment = ((rOfLargeSegment * 24 + hour + (this.getSolarMinute > 0 ? 1 : 0)) % 5) + 1
+    this.result.mediumSegmentLimit.value = earthlyBranches[`e${qOfMediumSegment}`]
+    this.result.smallSegmentLimit.value = fiveElements[`f${rOfMediumSegment}`]
+  }
+
+  _compileDayLimit () {
+    this.result.dayLimit.value = this.lunarDate.GanZhiDay
+  }
+  _compileHourLimit () {
+    const { earthlyBranches, fiveElements, heavenlyStems } = this.getTranslation()
+    const startHeavenlyHour = (() => {
+      const date = this.result.dayLimit.value
+      if (date.includes(earthlyBranches['e1']) || date.includes(earthlyBranches['e6'])) return 1
+      if (date.includes(earthlyBranches['e2']) || date.includes(earthlyBranches['e7'])) return 3
+      if (date.includes(earthlyBranches['e3']) || date.includes(earthlyBranches['e8'])) return 5
+      if (date.includes(earthlyBranches['e4']) || date.includes(earthlyBranches['e9'])) return 7
+      if (date.includes(earthlyBranches['e5']) || date.includes(earthlyBranches['e10'])) return 9
+    })()
+    const hour = this.getSolarHour() + (this.getSolarMinute > 0 ? 1 : 0)
+    const lunarHour = hour % 2 === 0 ? hour / 2 - 1 : (hour + 1) / 2 - 1
+    const heavenlyHourOrder = (() => {
+      let orderBasedNormalEarthlyOrder = 0
+      if (lunarHour > 10) orderBasedNormalEarthlyOrder = lunarHour - 10
+      else orderBasedNormalEarthlyOrder = lunarHour + 2
+      if (startHeavenlyHour + orderBasedNormalEarthlyOrder - 1 > 10) {
+        return startHeavenlyHour + orderBasedNormalEarthlyOrder - 1 - 10
+      } else {
+        return startHeavenlyHour + orderBasedNormalEarthlyOrder - 1
+      }
+    })()
+    this.result.hourLimit.value = heavenlyStems[`h${heavenlyHourOrder}`] + earthlyBranches[`e${lunarHour}`]
+    console.log(startHeavenlyHour, lunarHour)
+  }
   _compileLargeQuaterLimit () {}
   _compileSmallQuaterLimit () {}
 
   _compile () {
-    this._compileYear()
-    this._compileMonth()
-    this._compileLargeSegmentLimit()
-    this._compileMediumSegmentLimit()
-    this._compileSmallSegmentLimit()
-    this._compileDay()
-    this._compileHour()
+    this._compileYearLimit()
+    this._compileMonthLimit()
+    this._compileSegmentLimit()
+    this._compileDayLimit()
+    this._compileHourLimit()
     this._compileLargeQuaterLimit()
     this._compileSmallQuaterLimit()  
     return this
   }
 
   toNineLimit() {
+    console.log(this.solarDateTime)
     this._compile()
     return this.result
   }

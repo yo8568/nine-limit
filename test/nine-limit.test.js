@@ -1,7 +1,16 @@
 import NineLimit from '../src/nine-limit'
 
-test('NineLimit', () => {
-  console.log(new NineLimit().toNineLimit())
+test('2019 4/24 13:23', () => {
+  const result = new NineLimit(2019, 4, 24, 13, 23).toNineLimit()
+  expect(result.yearLimit.value).toBe('己亥')
+  expect(result.monthLimit.value).toBe('戊辰')
+  expect(result.largeSegmentLimit.value).toBe('酉')
+  expect(result.mediumSegmentLimit.value).toBe('亥')
+  expect(result.smallSegmentLimit.value).toBe('水')
+  expect(result.dayLimit.value).toBe('辛卯')
+  expect(result.hourLimit.value).toBe('乙未')
+  expect(result.largeQuaterLimit.value).toBe('辰')
+  expect(result.smallQuaterLimit.value).toBe('陽')
 })
 
 // test('Test some examples', () => {
