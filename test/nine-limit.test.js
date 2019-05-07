@@ -42,3 +42,12 @@ test('2019 3/19 03:01', () => {
   expect(result.smallQuaterLimit.value).toBe('陽')
   expect(new NineLimit(2019, 3, 19, 3, 1).toString()).toBe('己亥年 丁卯月 午大段 子中段 火小段 乙卯日 戊寅時 寅大刻 陽小刻')
 })
+
+test('Other Functions', () => {
+  const limiter = new NineLimit(2019, 3, 19, 3, 1)
+  expect(limiter.getSolarYear()).toBe(2019)
+  expect(limiter.getSolarMonth()).toBe(3)
+  expect(limiter.getSolarDay()).toBe(19)
+  expect(limiter.getSolarHour()).toBe(3)
+  expect(limiter.getSolarMinute()).toBe(1)
+})

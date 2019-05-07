@@ -6,6 +6,7 @@ package-lock.json
 .vscode/
 vscode/
 *.log
+coverage/
 
 # Compiled source #
 ###################

@@ -42,9 +42,6 @@ const NINE_LIMIT_FORMAT = [
   'dayLimit', 'hourLimit', 'largeQuaterLimit', 'smallQuaterLimit'
 ]
 
-// 設定最小甲子年為西元4年
-const minFirstYearOfSolarYear = 4
-
 const locales = ['zh-TW', 'zh-CN']
 
 class NineLimit {
