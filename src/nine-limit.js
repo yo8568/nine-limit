@@ -14,6 +14,8 @@ import ZhCnHeavenlyStems from '../locales/zh-cn/heavenly-stems.json'
 import ZhTWHeavenlyStems from '../locales/zh-tw/heavenly-stems.json'
 import ZhCnFiveElements from '../locales/zh-cn/five-elements.json'
 import ZhTWFiveElements from '../locales/zh-tw/five-elements.json'
+import ZhCnTwoLimits from '../locales/zh-cn/two-limits.json'
+import ZhTWTwoLimits from '../locales/zh-tw/two-limits.json'
 
 
 const jsonsOfLocale = {
@@ -21,13 +23,15 @@ const jsonsOfLocale = {
     'common': ZhCnCommon,
     'earthlyBranches': ZhCnEarthlyBranches,
     'heavenlyStems': ZhCnHeavenlyStems,
-    'fiveElements': ZhCnFiveElements
+    'fiveElements': ZhCnFiveElements,
+    'twoLimits': ZhCnTwoLimits
   },
   'zh-TW': {
     'common': ZhTwCommon,
     'earthlyBranches': ZhTWEarthlyBranches,
     'heavenlyStems': ZhTWHeavenlyStems,
-    'fiveElements': ZhTWFiveElements
+    'fiveElements': ZhTWFiveElements,
+    'twoLimits': ZhTWTwoLimits
   }
 }
 
@@ -98,7 +102,7 @@ class NineLimit {
       smallQuaterLimit: {
         label: common['smallQuaterLimit'],
         value: '陽',
-        unit: common['smallQuaterLimit']
+        unit: common['smallQuaterLimitUnit']
       }
     }
   }
@@ -183,8 +187,8 @@ class NineLimit {
     const hour = this.getSolarHour()
 
     // 若超過整點再加1
-    const hourOrder = (dateOrder - 1) + (hour > 12 && this.getSolarMinute > 0 ? 0.5 : 0 )
-    const qOfLargeSegment = Math.ceil(hourOrder / 2.5)
+    const hourOrder = (dateOrder - 1) + (hour >= 12 && this.getSolarMinute > 0 ? 0.5 : 0)
+    const qOfLargeSegment = Math.ceil(hourOrder / 2.5 + (hourOrder % 2.5 === 0 ? 1 : 0))
     const rOfLargeSegment = hourOrder % 2.5
     const { earthlyBranches, fiveElements } = this.getTranslation()
     this.result.largeSegmentLimit.value = earthlyBranches[`e${qOfLargeSegment}`]
@@ -199,20 +203,22 @@ class NineLimit {
     this.result.dayLimit.value = this.lunarDate.GanZhiDay
   }
   _compileHourLimit () {
-    const { earthlyBranches, fiveElements, heavenlyStems } = this.getTranslation()
+    const { earthlyBranches, heavenlyStems } = this.getTranslation()
     const startHeavenlyHour = (() => {
       const date = this.result.dayLimit.value
-      if (date.includes(earthlyBranches['e1']) || date.includes(earthlyBranches['e6'])) return 1
-      if (date.includes(earthlyBranches['e2']) || date.includes(earthlyBranches['e7'])) return 3
-      if (date.includes(earthlyBranches['e3']) || date.includes(earthlyBranches['e8'])) return 5
-      if (date.includes(earthlyBranches['e4']) || date.includes(earthlyBranches['e9'])) return 7
-      if (date.includes(earthlyBranches['e5']) || date.includes(earthlyBranches['e10'])) return 9
+      if (date.includes(heavenlyStems['h1']) || date.includes(heavenlyStems['h6'])) return 1
+      if (date.includes(heavenlyStems['h2']) || date.includes(heavenlyStems['h7'])) return 3
+      if (date.includes(heavenlyStems['h3']) || date.includes(heavenlyStems['h8'])) return 5
+      if (date.includes(heavenlyStems['h4']) || date.includes(heavenlyStems['h9'])) return 7
+      if (date.includes(heavenlyStems['h5']) || date.includes(heavenlyStems['h10'])) return 9
     })()
     const hour = this.getSolarHour() + (this.getSolarMinute > 0 ? 1 : 0)
-    const lunarHour = hour % 2 === 0 ? hour / 2 - 1 : (hour + 1) / 2 - 1
+
+    // 以e1=寅時為開頭 所以要為移往前2位
+    const lunarHour = hour % 2 === 0 ? (hour / 2) - 1 : ((hour + 1) / 2) - 1
     const heavenlyHourOrder = (() => {
       let orderBasedNormalEarthlyOrder = 0
-      if (lunarHour > 10) orderBasedNormalEarthlyOrder = lunarHour - 10
+      if (lunarHour + 2 >= 12) orderBasedNormalEarthlyOrder = lunarHour + 2 - 12
       else orderBasedNormalEarthlyOrder = lunarHour + 2
       if (startHeavenlyHour + orderBasedNormalEarthlyOrder - 1 > 10) {
         return startHeavenlyHour + orderBasedNormalEarthlyOrder - 1 - 10
@@ -221,10 +227,15 @@ class NineLimit {
       }
     })()
     this.result.hourLimit.value = heavenlyStems[`h${heavenlyHourOrder}`] + earthlyBranches[`e${lunarHour}`]
-    console.log(startHeavenlyHour, lunarHour)
   }
-  _compileLargeQuaterLimit () {}
-  _compileSmallQuaterLimit () {}
+  _compileQuaterLimit () {
+    const { earthlyBranches, twoLimits } = this.getTranslation()
+    const hour = this.getSolarHour()
+    const minute = this.getSolarMinute()
+    const quaterMins = (hour % 2 === 0 ? 1 : 0) * 60 + minute
+    this.result.largeQuaterLimit.value = earthlyBranches[`e${Math.ceil(quaterMins / 10 + (quaterMins % 10 === 0 ? 1 : 0))}`]
+    this.result.smallQuaterLimit.value = quaterMins % 10 < 5 ? twoLimits['t1'] : twoLimits['t2']
+  }
 
   _compile () {
     this._compileYearLimit()
@@ -232,15 +243,20 @@ class NineLimit {
     this._compileSegmentLimit()
     this._compileDayLimit()
     this._compileHourLimit()
-    this._compileLargeQuaterLimit()
-    this._compileSmallQuaterLimit()  
+    this._compileQuaterLimit()
     return this
   }
 
-  toNineLimit() {
-    console.log(this.solarDateTime)
+  toObject () {
     this._compile()
     return this.result
+  }
+
+  toString () {
+    this._compile()
+    return NINE_LIMIT_FORMAT.map(item => {
+      return this.result[item].value + this.result[item].unit 
+    }).join(' ')
   }
 
 }
