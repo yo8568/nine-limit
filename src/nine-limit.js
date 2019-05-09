@@ -17,7 +17,6 @@ import ZhTWFiveElements from '../locales/zh-tw/five-elements.json'
 import ZhCnTwoLimits from '../locales/zh-cn/two-limits.json'
 import ZhTWTwoLimits from '../locales/zh-tw/two-limits.json'
 
-
 const jsonsOfLocale = {
   'zh-CN': {
     'common': ZhCnCommon,
@@ -34,7 +33,6 @@ const jsonsOfLocale = {
     'twoLimits': ZhTWTwoLimits
   }
 }
-
 
 const NINE_LIMIT_FORMAT = [
   'yearLimit', 'monthLimit',
@@ -53,7 +51,7 @@ class NineLimit {
     this.setSolarDateTime(year, month, day, hour, minute)
   }
 
-  initialize() {
+  initialize () {
     const { common } = this.getTranslation()
     this.result = {
       yearLimit: {
@@ -108,15 +106,15 @@ class NineLimit {
     return locales.includes(this.locale)
       ? jsonsOfLocale[this.locale]
       : jsonsOfLocale['zh-TW']
-  } 
+  }
 
   setSolarDateTime (year, month, day, hour, minute) {
     if (year && month && day) {
-      if (typeof year !== 'number') throw 'Year is not number.'
-      if (typeof month !== 'number') throw 'Month is not number.'
-      if (typeof day !== 'number') throw 'Day is not number.'
-      if (typeof hour !== 'number') throw 'Hour is not number.'
-      if (typeof minute !== 'number') throw 'Minute is not number.'
+      if (typeof year !== 'number') throw TypeError('Year is not number.')
+      if (typeof month !== 'number') throw TypeError('Month is not number.')
+      if (typeof day !== 'number') throw TypeError('Day is not number.')
+      if (typeof hour !== 'number') throw TypeError('Hour is not number.')
+      if (typeof minute !== 'number') throw TypeError('Minute is not number.')
 
       this.solarDateTime = moment()
         .year(year)
@@ -136,7 +134,7 @@ class NineLimit {
       )
       this.isLargeSegmentIncludesLastSegment = this.lunarDate.monthDays >= 28
     } else {
-      throw 'Input value are not valid.'
+      throw TypeError('Input value are not valid.')
     }
 
     this.lunarDate = LunarCalendar.solarToLunar(
@@ -145,23 +143,23 @@ class NineLimit {
     return this
   }
 
-  getSolarYear() {
+  getSolarYear () {
     return this.solarDateTime.year()
   }
 
-  getSolarMonth() {
+  getSolarMonth () {
     return this.solarDateTime.month() + 1
   }
 
-  getSolarDay() {
+  getSolarDay () {
     return this.solarDateTime.date()
   }
 
-  getSolarHour() {
+  getSolarHour () {
     return this.solarDateTime.hour()
   }
 
-  getSolarMinute() {
+  getSolarMinute () {
     return this.solarDateTime.minute()
   }
 
@@ -189,7 +187,7 @@ class NineLimit {
     const rOfLargeSegment = hourOrder % 2.5
     const { earthlyBranches, fiveElements } = this.getTranslation()
     this.result.largeSegmentLimit.value = earthlyBranches[`e${qOfLargeSegment}`]
-    
+
     const qOfMediumSegment = Math.ceil((rOfLargeSegment * 24 + hour + (this.getSolarMinute > 0 ? 1 : 0)) / 5)
     const rOfMediumSegment = ((rOfLargeSegment * 24 + hour + (this.getSolarMinute > 0 ? 1 : 0)) % 5) + 1
     this.result.mediumSegmentLimit.value = earthlyBranches[`e${qOfMediumSegment}`]
@@ -215,7 +213,7 @@ class NineLimit {
     const lunarHour = hour % 2 === 0 ? (hour / 2) - 1 : ((hour + 1) / 2) - 1
     const heavenlyHourOrder = (() => {
       let orderBasedNormalEarthlyOrder = 0
-      if (lunarHour + 2 >= 12) orderBasedNormalEarthlyOrder = lunarHour + 2 - 12
+      if (lunarHour + 2 > 12) orderBasedNormalEarthlyOrder = lunarHour + 2 - 12
       else orderBasedNormalEarthlyOrder = lunarHour + 2
       if (startHeavenlyHour + orderBasedNormalEarthlyOrder - 1 > 10) {
         return startHeavenlyHour + orderBasedNormalEarthlyOrder - 1 - 10
@@ -223,6 +221,8 @@ class NineLimit {
         return startHeavenlyHour + orderBasedNormalEarthlyOrder - 1
       }
     })()
+
+    // console.log(heavenlyHourOrder)
     this.result.hourLimit.value = heavenlyStems[`h${heavenlyHourOrder}`] + earthlyBranches[`e${lunarHour}`]
   }
   _compileQuaterLimit () {
@@ -252,10 +252,9 @@ class NineLimit {
   toString () {
     this._compile()
     return NINE_LIMIT_FORMAT.map(item => {
-      return this.result[item].value + this.result[item].unit 
+      return this.result[item].value + this.result[item].unit
     }).join(' ')
   }
-
 }
 
 export default NineLimit
