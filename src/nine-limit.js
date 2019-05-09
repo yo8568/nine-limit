@@ -108,6 +108,12 @@ class NineLimit {
       : jsonsOfLocale['zh-TW']
   }
 
+  setLocale (locale) {
+    if (['zh-CN', 'zh-TW'].includes(locale)) this.locale = locale
+    this.initialize()
+    return this
+  }
+
   setSolarDateTime (year, month, day, hour, minute) {
     if (year && month && day) {
       if (typeof year !== 'number') throw TypeError('Year is not number.')
