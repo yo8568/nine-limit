@@ -7,7 +7,7 @@
     "test": "jest",
     "cov": "jest --coverage",
     "build": "npm run build:clean && npm run build:babel && npm run build:browserify && npm run build:minify",
-    "build:clean": "rimraf lib/*",
+    "build:clean": "rimraf lib/* dist/*",
     "build:babel": "babel src -d lib",
     "build:browserify": "browserify lib/nine-limit.js > dist/nine-limit.bundle.js",
     "build:minify": "minify dist/nine-limit.bundle.js > dist/nine-limit.min.js"
