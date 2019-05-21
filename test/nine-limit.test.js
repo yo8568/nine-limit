@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import NineLimit from '../src/nine-limit'
 
 test('2019 4/24 13:23', () => {
