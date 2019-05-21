@@ -1,10 +1,12 @@
 # Nine Limit
 
+![九極](/public/assets/nine-limit.png)
+
 ## 原理
 
 根據西元 ***年月日時分*** 換算成農(陰)曆 ***年月日時分*** ，接著再利用換算過後的年月日時分再一次換算成九極格式。
 
-###九極格式
+### 九極格式
 
 | 名稱   | 範例  |   單位與其順序 |
 |-------|---------|--------------|
@@ -28,7 +30,7 @@ $ npm install nine-limit
 
 ```javascript
 const nineLimit = new NineLimit('2019-03-19 03:25')
-  .toNineLimit()
+  .toString()
 
 console.log(nineLimit)
 // 乙亥年 丁卯月 午大段 亥中斷 火小段 乙卯日 戊寅時 辰大刻 陽小刻
