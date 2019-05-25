@@ -8,6 +8,12 @@ module.exports = {
           node: 'current'
         }
       }
-    ]
+    ],
+    '@babel/preset-react'
+  ],
+  plugins: [
+    '@babel/plugin-transform-runtime',
+    "@babel/plugin-transform-arrow-functions",
+    "@babel/plugin-transform-classes"
   ]
 }
