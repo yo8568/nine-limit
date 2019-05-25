@@ -1,6 +1,6 @@
 {
   "name": "nine-limit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Lunar calendar conversion tool whose precision is up to minute unit.",
   "main": "lib/nine-limit.js",
   "scripts": {
