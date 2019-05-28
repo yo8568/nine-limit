@@ -216,7 +216,12 @@ class NineLimit {
     const hour = this.getSolarHour() + (this.getSolarMinute > 0 ? 1 : 0)
 
     // 以e1=寅時為開頭 所以要為移往前2位
-    const lunarHour = hour % 2 === 0 ? (hour / 2) - 1 : ((hour + 1) / 2) - 1
+    const lunarHour = (() => {
+      if (hour < 2) return 11
+      else if (hour % 2 === 0) {
+        return (hour / 2) - 1
+      } else return ((hour + 1) / 2) - 1
+    }) ()
     const heavenlyHourOrder = (() => {
       let orderBasedNormalEarthlyOrder = 0
       if (lunarHour + 2 > 12) orderBasedNormalEarthlyOrder = lunarHour + 2 - 12
